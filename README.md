@@ -4,4 +4,4 @@ This script is designed to create quantile plots for communicating a validity to
 
 The simulated data in this example have a correlation of r = .5 (N = 1000, M = 50, SD = 10 [for both acutal and predicted values])
 
-![alt text](https://github.com/AJThurston/Quantiles/blob/master/quantiles.png)
+![alt text](https://github.com/AJThurston/quantiles/blob/master/quantiles.png)
