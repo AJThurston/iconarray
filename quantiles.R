@@ -32,7 +32,7 @@ plot1 = ggplot(data) +
   geom_bar(aes(x = quant, y = actu), position = "dodge", stat = "summary", 
            fun.y = "mean",
            color = 'black',
-           fill = '#006747',
+           fill = '#336666',
            width = .5) +
   theme(text = element_text(size = text.size, family = "Times"),
         panel.background = element_rect(fill = "white", color = "black"),
@@ -48,7 +48,8 @@ ggsave("quantiles.png",
        width = 6.5, 
        height = 4, 
        units = "in",
-       dpi = 300)
+       dpi = 300,
+       type = "cairo-png")
 
 write.xlsx(data, "data.quantiles.xlsx")
 
