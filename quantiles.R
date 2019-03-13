@@ -14,6 +14,8 @@ library(formattable)
 library(scales)
 windowsFonts(Times=windowsFont("TT Times New Roman"))
 
+getwd()
+
 data = read.xlsx("data.xlsx", sheetName = "Sheet1")
 
 quants  = 5                               #Number of quantiles
@@ -34,7 +36,14 @@ plot1 = ggplot(data) +
            color = 'black',
            fill = '#336666',
            width = .5) +
-  theme(text = element_text(size = text.size, family = "Times"),
+  annotate("text", x = 1.5, y = 58, label = "@AJThurston",
+           # hjust=-2,
+           # vjust=-.1,
+           col="#336666", cex=4,
+           fontface = "bold", alpha = 0.8) +
+  theme(text = element_text(size = text.size, 
+                            # family = "Times" #Uncomment this line if you REALLY want TNR
+                            ),
         panel.background = element_rect(fill = "white", color = "black"),
         panel.grid = element_blank(),
         axis.text.y = element_text(color = 'black'),
