@@ -8,15 +8,15 @@
 # The simulated data in this example have a correlation of r = .5 (N = 1000, 
 # M = 50, SD = 10)
 # -------------------------------------------------------------------------
-library(xlsx)
+library(openxlsx)
 library(ggplot2)
 library(formattable)
 library(scales)
 windowsFonts(Times=windowsFont("TT Times New Roman"))
 
-getwd()
-
 data = read.xlsx("data.xlsx", sheetName = "Sheet1")
+# Example data from this repository
+# data <- read.xlsx("https://github.com/AJThurston/quantiles/blob/master/data.xlsx?raw=True")
 
 quants  = 5                               #Number of quantiles
 x.title = "Predicted Criterion Quantiles" #X-axis title
