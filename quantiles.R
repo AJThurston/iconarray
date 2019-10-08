@@ -12,18 +12,18 @@ library(openxlsx)
 library(ggplot2)
 library(formattable)
 library(scales)
-windowsFonts(Times=windowsFont("TT Times New Roman"))
+library(Cairo)
 
 data = read.xlsx("data.xlsx", sheetName = "Sheet1")
-# Example data from this repository
+# Example data from the repository
 # data <- read.xlsx("https://github.com/AJThurston/quantiles/blob/master/data.xlsx?raw=True")
 
 quants  = 5                               #Number of quantiles
-x.title = "Predicted Criterion Quantiles" #X-axis title
+txt.siz = 12                              #Size for all text in the plot
 y.ll    = 40                              #Y-axis lower limit          
 y.ul    = 60                              #Y-axis upper limit
+x.title = "Predicted Criterion Quantiles" #X-axis title
 y.title = "Mean Actual Criterion Score"   #Y-axis title
-text.size = 12                            #Size for all text in the plot   
 
 # Calculates quantiles and plot results -----------------------------------
 data$quant <- as.numeric(cut(data$pred, quantile(data$pred, probs = seq(0,1,1/quants)), include.lowest=TRUE))
@@ -31,19 +31,17 @@ data$quant <- as.numeric(cut(data$pred, quantile(data$pred, probs = seq(0,1,1/qu
 plot1 = ggplot(data) +
   scale_y_continuous(name=y.title, limits = c(y.ll,y.ul), oob = rescale_none) + 
   scale_x_continuous(name=x.title, oob = rescale_none) +
-  geom_bar(aes(x = quant, y = actu), position = "dodge", stat = "summary", 
+  geom_bar(aes(x = quant, y = actu), 
+           position = "dodge", 
+           stat = "summary", 
            fun.y = "mean",
-           color = 'black',
            fill = '#336666',
            width = .5) +
-  annotate("text", x = 1.5, y = 58, label = "@AJThurston",
-           # hjust=-2,
-           # vjust=-.1,
-           col="#336666", cex=4,
-           fontface = "bold", alpha = 0.8) +
-  theme(text = element_text(size = text.size, 
-                            # family = "Times" #Uncomment this line if you REALLY want TNR
-                            ),
+  geom_text(aes(x = quant, y = actu, label = paste0(round(..y..,0),"%")), 
+            stat = "summary", 
+            fun.y = "mean",
+            vjust = -1) +
+  theme(text = element_text(size = txt.siz),
         panel.background = element_rect(fill = "white", color = "black"),
         panel.grid = element_blank(),
         axis.text.y = element_text(color = 'black'),
