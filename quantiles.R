@@ -28,20 +28,21 @@ y.title = "Mean Actual Criterion Score"   #Y-axis title
 # Calculates quantiles and plot results -----------------------------------
 data$quant <- as.numeric(cut(data$pred, quantile(data$pred, probs = seq(0,1,1/quants)), include.lowest=TRUE))
 
-plot1 = ggplot(data) +
-  scale_y_continuous(name=y.title, limits = c(y.ll,y.ul), oob = rescale_none) + 
-  scale_x_continuous(name=x.title, oob = rescale_none) +
-  geom_bar(aes(x = quant, y = actu), 
+
+p <- ggplot(data)
+p <- p + scale_y_continuous(name=y.title, limits = c(y.ll,y.ul), oob = rescale_none)
+p <- p + scale_x_continuous(name=x.title, oob = rescale_none)
+p <- p + geom_bar(aes(x = quant, y = actu), 
            position = "dodge", 
            stat = "summary", 
            fun.y = "mean",
            fill = '#336666',
-           width = .5) +
-  geom_text(aes(x = quant, y = actu, label = paste0(round(..y..,0),"%")), 
+           width = .5)
+p <- p + geom_text(aes(x = quant, y = actu, label = paste0(round(..y..,0),"%")), 
             stat = "summary", 
             fun.y = "mean",
-            vjust = -1) +
-  theme(text = element_text(size = txt.siz),
+            vjust = -1)
+p <- p + theme(text = element_text(size = txt.siz),
         panel.background = element_rect(fill = "white", color = "black"),
         panel.grid = element_blank(),
         axis.text.y = element_text(color = 'black'),
@@ -50,7 +51,7 @@ plot1 = ggplot(data) +
 
 # Write plot and quantile data to working directory -----------------------
 ggsave("quantiles.png", 
-       plot = plot1, 
+       plot = p, 
        scale = 1, 
        width = 6.5, 
        height = 4, 
