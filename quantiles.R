@@ -28,7 +28,6 @@ y.title = "Mean Actual Criterion Score"   #Y-axis title
 # Calculates quantiles and plot results -----------------------------------
 data$quant <- as.numeric(cut(data$pred, quantile(data$pred, probs = seq(0,1,1/quants)), include.lowest=TRUE))
 
-
 p <- ggplot(data)
 p <- p + scale_y_continuous(name=y.title, limits = c(y.ll,y.ul), oob = rescale_none)
 p <- p + scale_x_continuous(name=x.title, oob = rescale_none)
@@ -46,8 +45,7 @@ p <- p + theme(text = element_text(size = txt.siz),
                panel.background = element_rect(fill = "white", color = "black"),
                panel.grid = element_blank(),
                axis.text.y = element_text(color = 'black'),
-               axis.text.x = element_text(color = 'black')
-)
+               axis.text.x = element_text(color = 'black'))
 
 # Write plot and quantile data to working directory -----------------------
 ggsave("quantiles.png", 
