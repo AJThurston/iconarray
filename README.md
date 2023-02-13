@@ -181,7 +181,7 @@ p <- p + theme(text = element_text(size = txt.siz),
 p
 ```
 
-![](quantiles_files/figure-gfm/plot-1.png)<!-- -->
+![](https://github.com/AJThurston/quantiles/blob/master/quantiles.png?raw=true)<!-- -->
 
 ``` r
 ggsave("quantiles.png", 
