@@ -1,6 +1,5 @@
 Quantiles
 ================
-AJ Thurston
 
 ## Introduction
 
