@@ -33,21 +33,21 @@ p <- ggplot(data)
 p <- p + scale_y_continuous(name=y.title, limits = c(y.ll,y.ul), oob = rescale_none)
 p <- p + scale_x_continuous(name=x.title, oob = rescale_none)
 p <- p + geom_bar(aes(x = quant, y = actu), 
-           position = "dodge", 
-           stat = "summary", 
-           fun.y = "mean",
-           fill = '#336666',
-           width = .5)
+                  position = "dodge", 
+                  stat = "summary", 
+                  fun.y = "mean",
+                  fill = '#336666',
+                  width = .5)
 p <- p + geom_text(aes(x = quant, y = actu, label = paste0(round(..y..,0),"%")), 
-            stat = "summary", 
-            fun.y = "mean",
-            vjust = -1)
+                   stat = "summary", 
+                   fun.y = "mean",
+                   vjust = -1)
 p <- p + theme(text = element_text(size = txt.siz),
-        panel.background = element_rect(fill = "white", color = "black"),
-        panel.grid = element_blank(),
-        axis.text.y = element_text(color = 'black'),
-        axis.text.x = element_text(color = 'black')
-       )
+               panel.background = element_rect(fill = "white", color = "black"),
+               panel.grid = element_blank(),
+               axis.text.y = element_text(color = 'black'),
+               axis.text.x = element_text(color = 'black')
+)
 
 # Write plot and quantile data to working directory -----------------------
 ggsave("quantiles.png", 
