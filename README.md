@@ -215,7 +215,7 @@ write.csv(data, "expectancy_appended.csv")
 
 If you would prefer the algorithmic approach, I have copied the code
 from Cucina et al.(2017) for ease of use here:
-<https://github.com/AJThurston/expectancy/miwa_expectancy.R>
+<https://github.com/AJThurston/expectancy/blob/master/miwa_expectancy.R>
 
 ## References
 

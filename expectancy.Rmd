@@ -117,7 +117,7 @@ ggsave("expectancy.png",
 write.csv(data, "expectancy_appended.csv")
 ```
 
-If you would prefer the algorithmic approach, I have copied the code from Cucina et al.(2017) for ease of use here: https://github.com/AJThurston/expectancy/miwa_expectancy.R
+If you would prefer the algorithmic approach, I have copied the code from Cucina et al.(2017) for ease of use here: https://github.com/AJThurston/expectancy/blob/master/miwa_expectancy.R
 
 ## References
 Cucina, J., Berger, J., & Busciglio, H. (2017). Communicating Criterion-Related Validity Using Expectancy Charts: A New Approach. Personnel Assessment and Decisions, 3(1). https://doi.org/10.25035/pad.2017.001
