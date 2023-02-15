@@ -120,10 +120,7 @@ Based on the number of quantiles indicated in the parameter above, now
 we actually need to calculate the thresholds between each of the
 quantiles then assign each predicted score to a quantile group. The
 first bit of code here calculates the quantiles with the `quantile`
-function, then the code below takes the predicted values, compares them
-to the quantiles, and stores the quantile assignment as a new vairable
-using the `cut` function. Finally, the average actual criterion score
-for each quantile group is shown.
+function.
 
 ``` r
 quantiles <- quantile(df$pred, probs = seq(0,1,1/quants))
@@ -132,6 +129,10 @@ quantiles
 
     ##   0%  20%  40%  60%  80% 100% 
     ## 19.0 41.0 47.6 52.0 59.0 83.0
+
+Next, we take the the predicted values, compare them to the quantiles
+ranges, and store the quantile assignment as a new variable using the
+`cut` function.
 
 ``` r
 df$quant <- df$pred %>%
@@ -149,6 +150,9 @@ head(df)
     ## 5  5   44   50     3
     ## 6  6   65   60     5
 
+Finally, the average actual criterion score for each quantile group is
+shown. These are the values used in the expectancy chart.
+
 ``` r
 df %>%
   group_by(quant) %>%
@@ -163,6 +167,18 @@ df %>%
     ## 3     3  50.1
     ## 4     4  52.0
     ## 5     5  57.8
+
+In another approach, we may want to use a logical grouping of scores to
+make the decision. For example:
+
+- Group 1: Scores from 0 to 39
+- Group 2: Scores from 40 to 49
+- Group 3: Scores from 50 to 59
+- Group 4: Scores from 60 to 69
+- Group 5: Scores from 70 to 100
+
+It’s best to work with the client in advance to set expectations and
+understand what model will best meet their needs.
 
 ## Expectancy Plot
 
