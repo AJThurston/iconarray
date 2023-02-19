@@ -1,0 +1,179 @@
+---
+title: "Icon Array"
+output: github_document
+---
+Data visualization using icon array charts to communicate validity. 
+[@AJThurston](twitter.com/AJThurston)
+
+## Introduction
+
+This is essentially a follow-up to the data visualization on [expectancy plots](https://github.com/AJThurston/expectancy).  Research has demonstrated icon arrays are better understood by non-technical audiences (Zhang et al., 2018)
+
+This tutorial makes heavy use of the `waffle` R package, namely the `geom_waffle` function: https://github.com/hrbrmstr/waffle.  Although there are options for creating the plots outside of the functionality of `ggplot2` I recommend staying with ggplot for consistency with other visualizations and the strong community support for ggplot.
+
+
+## Setup and Libraries
+As the `waffle` package is not available on CRAN, you will need [Rtools installed](https://cran.r-project.org/bin/windows/Rtools/) to install the package from Github.
+
+```{r datagen, eval=FALSE, include=FALSE}
+library(faux)
+
+set.seed("11275")
+id <-  c(1:1000)
+pre <-  rbeta(1000,2,5)
+post <-  rnorm_pre(pre, mu = .58, sd = .15, r = 0.65)
+
+df <- data.frame(id,pre,post)
+
+write.csv(df, file = "iconarray.csv", row.names = F)
+```
+
+```{r setup, message = FALSE, warning = FALSE}
+devtools::install_github("hrbrmstr/waffle")
+library(summarytools)
+library(formattable)
+library(tidyverse)
+library(ggplot2)
+library(ggExtra)
+library(waffle)
+library(scales)
+library(Cairo)
+```
+
+## Data Import
+
+In this example, these simulated data represent test scores pre and post training intervention.  First, let's import the example data and quickly orient ourselves to it. There are three variables in the file:
+
+1.  id: This is just an identifier or a unique participant ID
+2.  pre: this is the individual's pre-training score
+3.  post: this is the individual's post-training score
+
+```{r data, message = FALSE, warning = FALSE}
+# df <- read.csv("https://raw.githubusercontent.com/AJThurston/iconarray/master/iconarray.csv")
+df <- read.csv("iconarray.csv")
+df %>%
+  select(pre,post) %>%
+  descr(.)
+
+
+
+p <- ggplot(df, aes(x = pre, y = post)) +
+      geom_point() +
+      theme(legend.position="none")
+p <- ggMarginal(p, type="histogram")
+p
+```
+Observe the fact that pre training scores are heavily positively skewed, the post-training scores are normally distributed, and the correlation between scores is about .66.
+
+## Determining Pass/Fail
+
+Based on the number of quantiles indicated in the parameter above, now we actually need to calculate the thresholds between each of the quantiles then assign each predicted score to a quantile group. The first bit of code here calculates the quantiles with the `quantile` function. 
+
+```{r quantiles1, eval = FALSE, message = FALSE, warning = FALSE}
+quantiles <- quantile(df$pred, probs = seq(0,1,1/quants))
+quantiles
+```
+
+
+In another approach, we may want to use a logical grouping of scores to make the decision.  For example:
+
+* Group 1: Scores from  0 to  39
+* Group 2: Scores from 40 to  49
+* Group 3: Scores from 50 to  59
+* Group 4: Scores from 60 to  69
+* Group 5: Scores from 70 to 100
+
+It's best to work with the client in advance to set expectations and understand what model will best meet their needs.
+
+## Expectancy Plot
+
+In many cases it is easier to simply take these values and display them in, for example, a PowerPoint plot. However, if you have to automate this tast for multiple criteria, the code below may be useful for this purpose.
+
+```{r expectancy, message = FALSE, warning = FALSE}
+tbl <- tibble(
+  prepost = factor(c(rep("Pre-training", 2), rep("Post-training", 2)), levels=c('Pre-training', 'Post-training')),
+  outcome = factor(c("pass","fail","pass","fail")),
+  values = c(28, 72, 58, 42)
+) 
+
+
+
+tbl
+
+
+# p <-   ggplot(tbl, aes(label = Outcome, values = values))
+# p <- p +  geom_pictogram(n_rows = 10, aes(colour = Outcome), flip = TRUE, make_proportional = TRUE)
+# # p <- p + geom_waffle(color = "white", size=1.125, n_rows = 10, flip = TRUE)
+# p <- p + facet_wrap(~fct, nrow = 1, strip.position = "bottom")
+# p <- p + scale_x_discrete(expand=c(0,0))
+# p <- p + scale_y_discrete(expand=c(0,0))
+# p <- p +  scale_color_manual(
+#     name = NULL,
+#     values = c("lightgray","#336666"),
+#     labels = c("Fail", "Pass"))
+#   
+# # p <- p + scale_fill_manual(values = c("lightgray","#336666"))
+# p <- p + scale_label_pictogram(
+#     name = NULL,
+#     values = c("person-simple", "person-simple"),
+#     labels = c("Fail", "Pass")
+#   )
+# # p <- p + ggthemes::scale_fill_tableau(name=NULL)
+# p <- p + coord_equal()
+# p <- p + labs(title = "Pre-/Post-Training Test Scores")
+# # p <- p + theme_ipsum_rc(grid="")
+# p <- p + theme_enhance_waffle()
+# p
+
+
+tbl <- tibble(
+  prepost = factor(c(rep("Pre-training", 2), rep("Post-training", 2)), levels=c('Pre-training', 'Post-training')),
+  outcome = factor(c("pass","fail","pass","fail")),
+  values = c(28, 72, 58, 42)
+) 
+
+
+p <- ggplot(tbl, aes(label = outcome, values = values))
+p <- p + geom_pictogram(n_rows = 10, aes(color = outcome), flip = TRUE)
+p <- p + facet_wrap(~prepost, nrow = 1, strip.position = "bottom")
+p <- p + scale_color_manual(
+    name = NULL,
+    values = c("#a40000", "#c68958"),
+    labels = c("Fail", "Pass")
+  )
+p <- p + scale_label_pictogram(
+    name = NULL,
+    values = c("male", "male"),
+    labels = c("Fail", "Pass")
+  )
+p <- p + coord_equal()
+# p <- p + theme_ipsum_rc(grid="")
+# p <- p + theme_enhance_waffle()
+p <- p + theme(legend.key.height = unit(2.25, "line"))
+p <- p + theme(legend.text = element_text(size = 10, hjust = 0, vjust = 0.75))
+p
+fa_list()
+```
+
+## Export
+
+These are some options for exporting your expectancy chart and the data for use in other software programs.
+
+```{r export, eval = FALSE, message=FALSE, warning=FALSE}
+ggsave("expectancy.png", 
+       plot = p, 
+       scale = 1, 
+       width = 6.5, 
+       height = 4, 
+       units = "in",
+       dpi = 300,
+       type = "cairo-png")
+
+write.csv(data, "expectancy_appended.csv")
+```
+
+If you would prefer the algorithmic approach, I have copied the code from Cucina et al.(2017) for ease of use here: https://github.com/AJThurston/expectancy/blob/master/miwa_expectancy.R
+
+## References
+Zhang, D. C., Highhouse, S., Brooks, M. E., & Zhang, Y. (2018). Communicating the validity of structured job interviews with graphical visual aids. International Journal of Selection and Assessment, September 2017, ijsa.12220. https://doi.org/10.1111/ijsa.12220
+
