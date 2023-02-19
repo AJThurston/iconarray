@@ -7,6 +7,10 @@ Data visualization using icon array charts to communicate validity.
 
 ## Introduction
 
+***IN DEVELOPMENT***  
+as of 2023-02-19  
+![](https://raw.githubusercontent.com/AJThurston/iconarray/master/images/iconarray.png)
+
 This is essentially a follow-up to the data visualization on [expectancy plots](https://github.com/AJThurston/expectancy).  Research has demonstrated icon arrays are better understood by non-technical audiences (Zhang et al., 2018)
 
 ## Setup and Libraries

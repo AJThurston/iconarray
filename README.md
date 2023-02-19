@@ -1,13 +1,14 @@
 Icon Array
 ================
 
-***IN DEVELOPMENT***
-*as of 2023-0219*
-
 Data visualization using icon array charts to communicate validity.
 [@AJThurston](twitter.com/AJThurston)
 
 ## Introduction
+
+***IN DEVELOPMENT***  
+as of 2023-02-19  
+![](https://raw.githubusercontent.com/AJThurston/iconarray/master/images/iconarray.png)
 
 This is essentially a follow-up to the data visualization on [expectancy
 plots](https://github.com/AJThurston/expectancy). Research has
