@@ -1,69 +1,48 @@
-Expectancy
+Icon Array
 ================
 
-Data visualization in support of establishing cut scores for employment
-tests based on quantile assignment.  
+***IN DEVELOPMENT***
+*as of 2023-0219*
+
+Data visualization using icon array charts to communicate validity.
 [@AJThurston](twitter.com/AJThurston)
 
 ## Introduction
 
-Expectancy charts are useful for establishing cut scores for selection
-(e.g., Stark et al. 2014, p. 160). This data visualization shows results
-by quantile groups, and are generally useful for communicating validity
-in terms of a correlation coefficient to non-technical audiences and
-have been found to be legally defensible in establishing cut scores for
-personnel decisions (Kehoe & Olson, 2005). This basic script will create
-quantiles based on the predicted criterion score and plot the mean
-actual criterion scores from each quantile. It includes the option to
-can export the quantile assignment back to a CSV file.
-
-You should also note there are other ways to create expectancies and
-there are limitations to this method. Historically, I-O psychologists
-have used Taylor-Russell tables to calculate these values, and there is
-a new algorithmic approach that allows for corrections for criterion
-unreliability (Cucina, Berger, & Busciglio 2017).
+This is essentially a follow-up to the data visualization on [expectancy
+plots](https://github.com/AJThurston/expectancy). Research has
+demonstrated icon arrays are better understood by non-technical
+audiences (Zhang et al., 2018)
 
 ## Setup and Libraries
 
+As the `waffle` package is not available on CRAN, you will need [Rtools
+installed](https://cran.r-project.org/bin/windows/Rtools/) to install
+the package from Github.
+
 ``` r
+library(personograph)
 library(summarytools)
-library(formattable)
 library(tidyverse)
 library(ggplot2)
-library(scales)
-library(Cairo)
+library(ggExtra)
 ```
 
 ## Data Import
 
-In this example, these simulated data have a correlation of r = .5
-between predicted and actual criterion scores (N = 1000, M = 50, SD =
-10). First, let’s import the example data and quickly orient ourselves
-to it. There are three variables in the file:
+In this example, these simulated data represent test scores pre and post
+training intervention. First, let’s import the example data and quickly
+orient ourselves to it. There are three variables in the file:
 
 1.  id: This is just an identifier or a unique participant ID
-2.  actu: this is the acutal criterion score (e.g., actual job
-    performance)
-3.  pred: this is the predicted criterion score (e.g., predicted job
-    perfromance from an employment test)
+2.  pre: this is the individual’s pre-training score
+3.  post: this is the individual’s post-training score
 
 ``` r
-# df <- read.csv("https://raw.githubusercontent.com/AJThurston/quantiles/master/expectancy.csv")
-df <- read.csv("expectancy.csv")
-head(df)
-```
-
-    ##   id actu pred
-    ## 1  1   47   44
-    ## 2  2   60   64
-    ## 3  3   46   46
-    ## 4  4   58   60
-    ## 5  5   44   50
-    ## 6  6   65   60
-
-``` r
+# df <- read.csv("https://raw.githubusercontent.com/AJThurston/iconarray/master/iconarray.csv")
+df <- read.csv("iconarray.csv")
 df %>%
-  select(actu,pred) %>%
+  select(pre,post) %>%
   descr(.)
 ```
 
@@ -71,50 +50,38 @@ df %>%
     ## df  
     ## N: 1000  
     ## 
-    ##                        actu      pred
+    ##                        post       pre
     ## ----------------- --------- ---------
-    ##              Mean     49.98     49.91
-    ##           Std.Dev      9.57     10.18
-    ##               Min     14.00     19.00
-    ##                Q1     44.00     43.00
-    ##            Median     51.00     50.00
-    ##                Q3     56.00     57.00
-    ##               Max     85.00     83.00
-    ##               MAD     10.38     10.38
-    ##               IQR     12.00     14.00
-    ##                CV      0.19      0.20
-    ##          Skewness     -0.13      0.00
+    ##              Mean      0.58      0.29
+    ##           Std.Dev      0.15      0.16
+    ##               Min      0.19      0.01
+    ##                Q1      0.48      0.16
+    ##            Median      0.58      0.27
+    ##                Q3      0.68      0.40
+    ##               Max      1.14      0.87
+    ##               MAD      0.15      0.18
+    ##               IQR      0.20      0.24
+    ##                CV      0.25      0.55
+    ##          Skewness      0.18      0.47
     ##       SE.Skewness      0.08      0.08
-    ##          Kurtosis      0.32      0.04
+    ##          Kurtosis     -0.09     -0.30
     ##           N.Valid   1000.00   1000.00
     ##         Pct.Valid    100.00    100.00
 
-## Parameters
-
-Next, we’ll need to set some parameters for the analysis and the
-graphics of the plot itself. The first parameter is simply how many
-quantiles we want to display, we could include only four (i.e.,
-quartiles), this example uses five (i.e., quintiles), but I would
-recommend probably no more than 10 (i.e., deciles).
-
-Additionally, you’ll need to include the text size for the plot, the
-upper and lower limits for the y-axis, and the axis titles. For the
-limits, I typically recommend using the actual criterion mean minus two
-SD for your lower limit and two SD above the mean for the upper limit.
-Some could argue it should be 0 to 100 if that is the range of possible
-scores. I would argue my limits cover over 95% of the possible scores.
-Whatever limits you choose, ensure you have some justification.
-
 ``` r
-quants  <-  5                              #Number of quantiles
-txt.siz <- 12                              #Size for all text in the plot
-y.ll    <- 30                              #Y-axis lower limit          
-y.ul    <- 70                              #Y-axis upper limit
-x.title <- "Predicted Criterion Quantiles" #X-axis title
-y.title <- "Mean Actual Criterion Score"   #Y-axis title
+p <- ggplot(df, aes(x = pre, y = post)) +
+      geom_point() +
+      theme(legend.position="none")
+p <- ggMarginal(p, type="histogram")
+p
 ```
 
-## Calculating Quantiles
+![](iconarray_files/figure-gfm/data-1.png)<!-- --> Observe the fact that
+pre training scores are heavily positively skewed, the post-training
+scores are normally distributed, and the correlation between scores is
+about .66.
+
+## Determining Pass/Fail
 
 Based on the number of quantiles indicated in the parameter above, now
 we actually need to calculate the thresholds between each of the
@@ -123,50 +90,9 @@ first bit of code here calculates the quantiles with the `quantile`
 function.
 
 ``` r
-quantiles <- quantile(df$pred, probs = seq(0,1,1/quants))
+df$pre_passed <- cut(df$pre, .5)
 quantiles
 ```
-
-    ##   0%  20%  40%  60%  80% 100% 
-    ## 19.0 41.0 47.6 52.0 59.0 83.0
-
-Next, we take the the predicted values, compare them to the quantiles
-ranges, and store the quantile assignment as a new variable using the
-`cut` function.
-
-``` r
-df$quant <- df$pred %>%
-  cut(., breaks = quantiles, include.lowest=TRUE) %>%
-  as.numeric()
-
-head(df)
-```
-
-    ##   id actu pred quant
-    ## 1  1   47   44     2
-    ## 2  2   60   64     5
-    ## 3  3   46   46     2
-    ## 4  4   58   60     5
-    ## 5  5   44   50     3
-    ## 6  6   65   60     5
-
-Finally, the average actual criterion score for each quantile group is
-shown. These are the values used in the expectancy chart.
-
-``` r
-df %>%
-  group_by(quant) %>%
-  summarize(m = mean(actu))
-```
-
-    ## # A tibble: 5 x 2
-    ##   quant     m
-    ##   <dbl> <dbl>
-    ## 1     1  42.8
-    ## 2     2  48.2
-    ## 3     3  50.1
-    ## 4     4  52.0
-    ## 5     5  57.8
 
 In another approach, we may want to use a logical grouping of scores to
 make the decision. For example:
@@ -180,7 +106,7 @@ make the decision. For example:
 It’s best to work with the client in advance to set expectations and
 understand what model will best meet their needs.
 
-## Expectancy Plot
+## Icon Array Plot
 
 In many cases it is easier to simply take these values and display them
 in, for example, a PowerPoint plot. However, if you have to automate
@@ -188,65 +114,91 @@ this tast for multiple criteria, the code below may be useful for this
 purpose.
 
 ``` r
-p <- ggplot(df)
-p <- p + scale_y_continuous(name=y.title, limits = c(y.ll,y.ul), oob = rescale_none)
-p <- p + scale_x_continuous(name=x.title, oob = rescale_none)
-p <- p + geom_bar(aes(x = quant, y = actu), 
-                  position = "dodge", 
-                  stat = "summary", 
-                  fun = "mean",
-                  fill = '#336666',
-                  width = .5)
-p <- p + geom_text(aes(x = quant, y = actu, label = paste0(round(..y..,0),"%")), 
-                   stat = "summary", 
-                   fun = "mean",
-                   vjust = -1)
-p <- p + theme(text = element_text(size = txt.siz),
-               panel.background = element_rect(fill = "white", color = "black"),
-               panel.grid = element_blank(),
-               axis.text.y = element_text(color = 'black'),
-               axis.text.x = element_text(color = 'black'))
-p
+pre <- list(failed=0.73, passed=0.27)
+
+svg("iconarray_pre.svg",
+    width = 4, 
+    height = 8)
+
+personograph(pre,  
+             colors=list(failed = "gray", passed="#336666"),
+             draw.legend = FALSE, 
+             dimensions=c(10,10))
+# trace(personograph, edit = T)
+
+
+dev.off()
 ```
 
-![](expectancy_files/figure-gfm/expectancy-1.png)<!-- -->
+    ## png 
+    ##   2
+
+``` r
+post <- list(failed=0.42, passed=0.58)
+
+
+svg("iconarray_post.svg",
+    width = 4, 
+    height = 8)
+
+personograph(post,  
+             colors=list(failed = "gray", passed="#336666"),
+             draw.legend = FALSE, 
+             dimensions=c(10,10))
+
+dev.off()
+```
+
+    ## png 
+    ##   2
 
 ## Export
 
-These are some options for exporting your expectancy chart and the data
-for use in other software programs.
+Export the pass/fail data for use elsewhere.
 
 ``` r
-ggsave("expectancy.png", 
-       plot = p, 
-       scale = 1, 
-       width = 6.5, 
-       height = 4, 
-       units = "in",
-       dpi = 300,
-       type = "cairo-png")
-
-write.csv(data, "expectancy_appended.csv")
+write.csv(data, "iconarray_appended.csv")
 ```
-
-If you would prefer the algorithmic approach, I have copied the code
-from Cucina et al.(2017) for ease of use here:
-<https://github.com/AJThurston/expectancy/blob/master/miwa_expectancy.R>
 
 ## References
 
-Cucina, J., Berger, J., & Busciglio, H. (2017). Communicating
-Criterion-Related Validity Using Expectancy Charts: A New Approach.
-Personnel Assessment and Decisions, 3(1).
-<https://doi.org/10.25035/pad.2017.001>
+Zhang, D. C., Highhouse, S., Brooks, M. E., & Zhang, Y. (2018).
+Communicating the validity of structured job interviews with graphical
+visual aids. International Journal of Selection and Assessment,
+September 2017, ijsa.12220. <https://doi.org/10.1111/ijsa.12220>
 
-Kehoe, J. F., & Olson, A. (2005). Cut scores and employment
-discrimination litigation. In F. J. Landy (Ed.), *Employment
-discrimination litigation: Behavioral, quantitative, and legal
-perspectives* (pp. 410–449). San Francisco, CA: Jossey-Bass.
+## Appendix: Alternatives
 
-Stark, S., Chernyshenko, O. S., Drasgow, F., Nye, C. D., White, L. A.,
-Heffner, T., & Farmer, W. L. (2014). From ABLE to TAPAS: A New
-Generation of Personality Tests to Support Military Selection and
-Classification Decisions. Military Psychology, 26(3), 153–164.
-<https://doi.org/10.1037/mil0000044>
+The `personograph` function is quite old at this point, and could not
+have taken advantage of the `ggplot` functionanility at the time it was
+developed. In creating this tutorial, I spent nearly two days trying to
+get other, more recent R packages which do leverage `ggplot` to work
+and, unfortunately, neither of the two I tried resulted in a satisfying
+conclusion.
+
+Originally, this tutorial was designed to make heavy use of the `waffle`
+R package, namely the `geom_waffle` function:
+<https://github.com/hrbrmstr/waffle>. The `ggwaffle` package is another
+alternative: <https://github.com/liamgilbey/ggwaffle>. If you wanted to
+make waffle charts instead of icon arrays, I highly recommend both, but
+my personal preference is `ggwaffle`.
+
+Two briefly recap my frustration with trying to use these packages for
+icon arrays, it really boils down to two main problems:
+
+1.  Spending a considerable amount of time diagnosing issues related to
+    installing icons using `geom_icon`
+2.  Spending a considerable amount of computing time waiting for images
+    to render using `geom_images`
+
+Plainly, I was never successful in getting fonts to install and pull
+into R appropriately for `geom_icon` which does plot quickly. This is
+more driven by the issues of propriety related to font formats. Even
+with Font Awesome successfully downloaded and installed. With
+`geom_images`, my 24 core CPU struggled to render icon arrays in a
+timely manner.
+
+Finally, if you want a no code solution to icon arrays, please consider
+University of Michigan’s [iconarray.com](https://iconarray.com). I
+typically steer people away from GUI-based solutions, but I modeled my R
+based solution off what I was able to produce there.

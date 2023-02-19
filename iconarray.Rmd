@@ -9,9 +9,6 @@ Data visualization using icon array charts to communicate validity.
 
 This is essentially a follow-up to the data visualization on [expectancy plots](https://github.com/AJThurston/expectancy).  Research has demonstrated icon arrays are better understood by non-technical audiences (Zhang et al., 2018)
 
-This tutorial makes heavy use of the `waffle` R package, namely the `geom_waffle` function: https://github.com/hrbrmstr/waffle.  Although there are options for creating the plots outside of the functionality of `ggplot2` I recommend staying with ggplot for consistency with other visualizations and the strong community support for ggplot.
-
-
 ## Setup and Libraries
 As the `waffle` package is not available on CRAN, you will need [Rtools installed](https://cran.r-project.org/bin/windows/Rtools/) to install the package from Github.
 
@@ -29,15 +26,11 @@ write.csv(df, file = "iconarray.csv", row.names = F)
 ```
 
 ```{r setup, message = FALSE, warning = FALSE}
-devtools::install_github("hrbrmstr/waffle")
+library(personograph)
 library(summarytools)
-library(formattable)
 library(tidyverse)
 library(ggplot2)
 library(ggExtra)
-library(waffle)
-library(scales)
-library(Cairo)
 ```
 
 ## Data Import
@@ -55,8 +48,6 @@ df %>%
   select(pre,post) %>%
   descr(.)
 
-
-
 p <- ggplot(df, aes(x = pre, y = post)) +
       geom_point() +
       theme(legend.position="none")
@@ -70,7 +61,7 @@ Observe the fact that pre training scores are heavily positively skewed, the pos
 Based on the number of quantiles indicated in the parameter above, now we actually need to calculate the thresholds between each of the quantiles then assign each predicted score to a quantile group. The first bit of code here calculates the quantiles with the `quantile` function. 
 
 ```{r quantiles1, eval = FALSE, message = FALSE, warning = FALSE}
-quantiles <- quantile(df$pred, probs = seq(0,1,1/quants))
+df$pre_passed <- cut(df$pre, .5)
 quantiles
 ```
 
@@ -85,95 +76,67 @@ In another approach, we may want to use a logical grouping of scores to make the
 
 It's best to work with the client in advance to set expectations and understand what model will best meet their needs.
 
-## Expectancy Plot
+## Icon Array Plot
 
 In many cases it is easier to simply take these values and display them in, for example, a PowerPoint plot. However, if you have to automate this tast for multiple criteria, the code below may be useful for this purpose.
 
-```{r expectancy, message = FALSE, warning = FALSE}
-tbl <- tibble(
-  prepost = factor(c(rep("Pre-training", 2), rep("Post-training", 2)), levels=c('Pre-training', 'Post-training')),
-  outcome = factor(c("pass","fail","pass","fail")),
-  values = c(28, 72, 58, 42)
-) 
+```{r iconarray, message = FALSE, warning = FALSE}
+pre <- list(failed=0.73, passed=0.27)
+
+svg("iconarray_pre.svg",
+    width = 4, 
+    height = 8)
+
+personograph(pre,  
+             colors=list(failed = "gray", passed="#336666"),
+             draw.legend = FALSE, 
+             dimensions=c(10,10))
+# trace(personograph, edit = T)
 
 
-
-tbl
-
-
-# p <-   ggplot(tbl, aes(label = Outcome, values = values))
-# p <- p +  geom_pictogram(n_rows = 10, aes(colour = Outcome), flip = TRUE, make_proportional = TRUE)
-# # p <- p + geom_waffle(color = "white", size=1.125, n_rows = 10, flip = TRUE)
-# p <- p + facet_wrap(~fct, nrow = 1, strip.position = "bottom")
-# p <- p + scale_x_discrete(expand=c(0,0))
-# p <- p + scale_y_discrete(expand=c(0,0))
-# p <- p +  scale_color_manual(
-#     name = NULL,
-#     values = c("lightgray","#336666"),
-#     labels = c("Fail", "Pass"))
-#   
-# # p <- p + scale_fill_manual(values = c("lightgray","#336666"))
-# p <- p + scale_label_pictogram(
-#     name = NULL,
-#     values = c("person-simple", "person-simple"),
-#     labels = c("Fail", "Pass")
-#   )
-# # p <- p + ggthemes::scale_fill_tableau(name=NULL)
-# p <- p + coord_equal()
-# p <- p + labs(title = "Pre-/Post-Training Test Scores")
-# # p <- p + theme_ipsum_rc(grid="")
-# p <- p + theme_enhance_waffle()
-# p
+dev.off()
 
 
-tbl <- tibble(
-  prepost = factor(c(rep("Pre-training", 2), rep("Post-training", 2)), levels=c('Pre-training', 'Post-training')),
-  outcome = factor(c("pass","fail","pass","fail")),
-  values = c(28, 72, 58, 42)
-) 
+post <- list(failed=0.42, passed=0.58)
 
 
-p <- ggplot(tbl, aes(label = outcome, values = values))
-p <- p + geom_pictogram(n_rows = 10, aes(color = outcome), flip = TRUE)
-p <- p + facet_wrap(~prepost, nrow = 1, strip.position = "bottom")
-p <- p + scale_color_manual(
-    name = NULL,
-    values = c("#a40000", "#c68958"),
-    labels = c("Fail", "Pass")
-  )
-p <- p + scale_label_pictogram(
-    name = NULL,
-    values = c("male", "male"),
-    labels = c("Fail", "Pass")
-  )
-p <- p + coord_equal()
-# p <- p + theme_ipsum_rc(grid="")
-# p <- p + theme_enhance_waffle()
-p <- p + theme(legend.key.height = unit(2.25, "line"))
-p <- p + theme(legend.text = element_text(size = 10, hjust = 0, vjust = 0.75))
-p
-fa_list()
+svg("iconarray_post.svg",
+    width = 4, 
+    height = 8)
+
+personograph(post,  
+             colors=list(failed = "gray", passed="#336666"),
+             draw.legend = FALSE, 
+             dimensions=c(10,10))
+
+dev.off()
+
 ```
 
 ## Export
 
-These are some options for exporting your expectancy chart and the data for use in other software programs.
-
+Export the pass/fail data for use elsewhere.
 ```{r export, eval = FALSE, message=FALSE, warning=FALSE}
-ggsave("expectancy.png", 
-       plot = p, 
-       scale = 1, 
-       width = 6.5, 
-       height = 4, 
-       units = "in",
-       dpi = 300,
-       type = "cairo-png")
-
-write.csv(data, "expectancy_appended.csv")
+write.csv(data, "iconarray_appended.csv")
 ```
-
-If you would prefer the algorithmic approach, I have copied the code from Cucina et al.(2017) for ease of use here: https://github.com/AJThurston/expectancy/blob/master/miwa_expectancy.R
 
 ## References
 Zhang, D. C., Highhouse, S., Brooks, M. E., & Zhang, Y. (2018). Communicating the validity of structured job interviews with graphical visual aids. International Journal of Selection and Assessment, September 2017, ijsa.12220. https://doi.org/10.1111/ijsa.12220
+
+## Appendix: Alternatives
+
+The `personograph` function is quite old at this point, and could not have taken advantage of the `ggplot` functionanility at the time it was developed.  In creating this tutorial, I spent nearly two days trying to get other, more recent R packages which do leverage `ggplot` to work and, unfortunately, neither of the two I tried resulted in a satisfying conclusion.
+
+Originally, this tutorial was designed to make heavy use of the `waffle` R package, namely the `geom_waffle` function: https://github.com/hrbrmstr/waffle.  The `ggwaffle` package is another alternative: https://github.com/liamgilbey/ggwaffle.  If you wanted to make waffle charts instead of icon arrays, I highly recommend both, but my personal preference is `ggwaffle`.  
+
+Two briefly recap my frustration with trying to use these packages for icon arrays, it really boils down to two main problems:
+
+1. Spending a considerable amount of time diagnosing issues related to installing icons using `geom_icon`
+2. Spending a considerable amount of computing time waiting for images to render using `geom_images`
+
+Plainly, I was never successful in getting fonts to install and pull into R appropriately for `geom_icon` which does plot quickly.  This is more driven by the issues of propriety related to font formats.  Even with Font Awesome successfully downloaded and installed.  With `geom_images`, my 24 core CPU struggled to render icon arrays in a timely manner.
+
+Finally, if you want a no code solution to icon arrays, please consider University of Michigan's [iconarray.com](https://iconarray.com).  I typically steer people away from GUI-based solutions, but I modeled my R based solution off what I was able to produce there.
+
+
 
